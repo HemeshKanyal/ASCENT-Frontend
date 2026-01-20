@@ -13,7 +13,7 @@ We are committed to providing a friendly, safe, and welcoming environment for al
 1. Fork the repository on GitHub.
 2. Clone your fork locally:
    ```bash
-   git clone <your-fork-url>
+   git clone https://github.com/HemeshKanyal/ASCENT-Frontend.git
    cd workoutApp
    ```
 
