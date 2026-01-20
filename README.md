@@ -1,51 +1,61 @@
-# Welcome to your Expo app 👋
+# ASCENT-Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+ASCENT is a comprehensive workout tracking mobile application built with React Native and Expo. This repository contains the frontend code for the application.
 
-## Get started
+## 🚀 Tech Stack
 
-1. Install dependencies
+- **Framework:** [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Routing:** [Expo Router](https://docs.expo.dev/router/introduction)
+- **Styling:** React Native Stylesheet / Expo Constants
+- **State/Storage:** Async Storage
 
+## 🛠 Prerequisites
+
+Before you begin, ensure you have met the following requirements:
+- **Node.js**: Download and install Node.js (v18 or newer recommended).
+- **npm** or **yarn**: A package manager to install dependencies.
+
+## 📦 Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository_url>
+   cd workoutApp
+   ```
+
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-2. Start the app
+## 🏃‍♂️ Usage
 
+1. **Start the development server:**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+2. **Run on a device/simulator:**
+   - **Android:** Press `a` in the terminal (requires Android Studio/Emulator).
+   - **iOS:** Press `i` in the terminal (requires Xcode/Simulator, macOS only).
+   - **Web:** Press `w` in the terminal.
+   - **Physical Device:** Install the "Expo Go" app on your phone and scan the QR code displayed in the terminal.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📂 Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- `app/`: Contains the Expo Router screen layouts and navigation logic.
+- `src/`: Contains the core application logic.
+    - `components/`: Reusable UI components.
+    - `services/`: API services and business logic.
+    - `hooks/`: Custom React hooks.
+    - `constants/`: Configuration and constant values.
+- `assets/`: Images, fonts, and other static assets.
 
-## Get a fresh project
+## 🤝 Contributing
 
-When you're ready, run:
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
 
-```bash
-npm run reset-project
-```
+## 📄 License
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-# ASCENT-Frontend
+This project is licensed under the MIT License.
