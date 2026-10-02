@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "workoutapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -18,11 +17,10 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -38,7 +36,34 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "ASCENT uses the camera to scan food barcodes.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ASCENT uses your photos to estimate meals you choose to log.",
+          "cameraPermission": "ASCENT uses the camera to photograph meals and scan food barcodes."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#000000"
+        }
+      ],
+      "expo-video",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
