@@ -41,3 +41,8 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Secrets (API keys) — never commit
+.env
+.env.*
+!.env.example

@@ -1,50 +1,69 @@
+import { DMSerifDisplay_400Regular, DMSerifDisplay_400Regular_Italic } from "@expo-google-fonts/dm-serif-display";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+  Inter_900Black,
+  useFonts,
+} from "@expo-google-fonts/inter";
 import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { getUserProfile } from "../src/services/userProfile";
+
+import { onReminderTap } from "../src/services/reminders";
+import { getProfile } from "../src/services/trainingStore";
+import { colors } from "../src/ui/theme";
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [checkingProfile, setCheckingProfile] = useState(true);
   const segments = useSegments();
   const rootNavigationState = useRootNavigationState();
+  const [fontsLoaded, fontError] = useFonts({
+    DMSerifDisplay_400Regular,
+    DMSerifDisplay_400Regular_Italic,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+    Inter_900Black,
+  });
+
+  useEffect(() => onReminderTap((url) => router.push(url as never)), []);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {});
+  }, [fontsLoaded, fontError]);
 
   useEffect(() => {
     // Wait for the navigation to be ready
     if (!rootNavigationState?.key) return;
 
-    async function init() {
-      try {
-        console.log("Checking user profile...");
-        const profile = await getUserProfile();
-        console.log("Profile result:", profile);
-
-        const inAuthGroup = segments[0] === "(tabs)";
-        const inOnboardingGroup = segments[0] === "onboarding";
-
-        // Logic to prevent redirect loops
-        if (!profile && !inOnboardingGroup) {
-          console.log("Redirecting to /onboarding");
-          router.replace("/onboarding" as any);
-        } else if (profile && !inAuthGroup) {
-          console.log("Redirecting to /(tabs)");
-          router.replace("/(tabs)" as any);
-        } else {
-          console.log("No redirect needed. Current segment:", segments[0]);
-        }
-      } catch (error) {
-        console.error("Error in auth check:", error);
-      } finally {
-        setCheckingProfile(false);
-      }
-    }
-
-    init();
+    getProfile()
+      .then((profile) => {
+        const inOnboarding = (segments[0] as string) === "onboarding";
+        if (!profile && !inOnboarding) router.replace("/onboarding");
+        else if (profile && inOnboarding) router.replace("/");
+      })
+      .catch((error) => console.error("Error in profile check:", error))
+      .finally(() => setCheckingProfile(false));
   }, [rootNavigationState?.key /* Re-run only if root nav availability changes */]);
+
+  if (!fontsLoaded && !fontError) return null;
 
   // Render Stack always to ensure navigation context is available
   return (
-    <View style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }} />
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+        <Stack.Screen name="swap" options={{ presentation: "modal" }} />
+      </Stack>
       {checkingProfile && (
         <View
           style={{
@@ -55,11 +74,11 @@ export default function RootLayout() {
             bottom: 0,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: "white", // ensure it covers the screen
+            backgroundColor: colors.bg,
             zIndex: 1000,
           }}
         >
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color={colors.accent} />
         </View>
       )}
     </View>
