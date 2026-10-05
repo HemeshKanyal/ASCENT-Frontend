@@ -1,0 +1,12 @@
+Anatomy models (muscles.glb, bones.glb)
+From "Anatomy 3D Models" by lucgrn3 — https://github.com/lucgrn3/anatomy-models
+Licence: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+https://creativecommons.org/licenses/by-sa/4.0/
+These files are redistributed unmodified. Original sources:
+- Z-Anatomy - The libre 3D atlas of anatomy - CC BY-SA 4.0 (Gauthier Kervyn, Marcin Zielinski). Models modified.
+- BodyParts3D, (c) The Database Center for Life Science, licensed under CC BY-SA 2.1 Japan. Models modified.
+- NIH 3D (3d.nih.gov), 'Human Skeleton' series by My Segmenter, CC BY 4.0. Meshes registered and modified.
+- Sketchfab models under CC BY 4.0 by ebauer4 (Elon University), usf-idex-access3d (University of South Florida) and OSU.Multimedia (The Ohio State University). Meshes registered and modified.
+- Open Anatomy Project inner ear atlas (Surgical Planning Laboratory, Brigham and Women's Hospital): distributed under the 3D Slicer License; Part B is reproduced in LICENSE-slicer.txt.
+- This model set (content/models) is distributed under CC BY-SA 4.0.
+Muscle names: Wikidata (CC0), via Terminologia Anatomica 2 identifiers.
