@@ -30,3 +30,8 @@ Expo SDK 57 / React Native 0.86 / React 19 workout + nutrition app, Expo Router 
 
 - Monochrome UI: black/white/gray gradients; bold Inter + italic DM Serif Display. Hues: `colors.danger` (destructive actions) and `colors.muscle`/`muscleSoft` (anatomy only).
 - Match surrounding code: short doc comments on modules/exported functions explaining *why*, plain names, no over-abstraction.
+
+## Releasing
+
+- **Web app**: Vercel project with root = this repo (`vercel.json`: `expo export -p web` → `dist`, SPA rewrite). Deploys on push to `main`.
+- **APK**: bump `expo.version` and `android.versionCode` in `app.json`, then `npx eas-cli build -p android --profile apk` (EAS cloud, account `h83629048`, keystore stored on EAS; never replace it or installed apps can't update). Publish with `gh release create vX.Y.Z <file>#… ` uploading the file as `ascent.apk`. The site links to `releases/latest/download/ascent.apk`, so no site change is needed.
