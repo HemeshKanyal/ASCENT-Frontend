@@ -68,6 +68,20 @@ Plain JS, no React or network, so it runs offline on the phone and under `npm te
 | `supplements.js` | Supplement catalogue with per-serving nutrients and condition-specific cautions |
 | `activities.js` | Every activity type (run, swim, yoga, sports…) with tips, warm-ups, cool-downs |
 | `gps.js` | GPS maths: distance, moving time, pace, km splits, elevation, glitch filtering |
+| `anatomy.js` | 41 individual muscles (anatomical name + plain group), front/back body map, which heads each exercise works |
+| `rig.js` | 3D mannequin: joint angles or IK targets → joints; anatomical range checks |
+| `motions.js` | One keyframed motion per exercise (146), built from coaching cues |
+| `demo.js` | Timing, camera projection, depth-sorted drawing, muscles on the body surface, `checkMotion` |
+
+## Exercise guidance
+
+Each exercise screen shows a looping demo (`src/ui/ExerciseDemo.tsx`), numbered steps and common mistakes (`src/data/howto.ts`), an anatomy map with target muscles in red and helpers in soft red, listed by anatomical name with the plain group in brackets (`src/ui/BodyMap.tsx`), and a YouTube link (`src/ui/youtube.tsx`). Moves and activities get the anatomy map and YouTube link too.
+
+- **Demos** are drawn, not videos. `rig.js` is a 3D mannequin (two-part spine, shoulders, elbows, hips, knees, ankles, wrists). Limbs are posed with anatomical terms (`elev`/`plane`/`bend`/`rot`) or pinned to a bar, handle or the floor with two-bone IK. Each exercise in `motions.js` has its own keyframes and a camera angle that shows the working joints; `adjust` hooks keep constraints between keyframes (e.g. straight arms and a vertical bar path in deadlifts). Muscles are drawn on the surface where they sit and only show when that side faces the camera.
+- **Accuracy guard**: `checkMotion` samples every rep and fails on joint ranges (elbow ≤ 155°, knee ≤ 160° and never backward, hip extension ≤ 30°, abduction ≤ 66°, ankle −55…40°, spine/neck limits), anything below the floor or through a bench, and hands/feet that can't reach their contact point. A test runs it for all 146 exercises and also checks each demo shows its target muscles. Preview while authoring by rendering `demoFrame()` to SVG in a browser.
+- **YouTube** links are searches (never dead); pin a specific video by adding its id to `CURATED` in `youtube.tsx`.
+- **Muscle red** (`colors.muscle` / `muscleSoft`) is only for anatomy; `colors.danger` stays for destructive actions.
+- Tests guard coverage: every exercise has a demo and how-to, every muscle is drawn, every activity/area is mapped.
 
 App state (profile, block, planned workout, active session, history) lives in AsyncStorage via `src/services/trainingStore.ts`; food, water and weight logs via `src/services/nutritionStore.ts`. Packaged foods and barcodes come from Open Food Facts (`src/services/openFoodFacts.ts`; search is phone-only because OFF search blocks browser CORS).
 

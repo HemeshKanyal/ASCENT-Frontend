@@ -1,10 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { Text } from "react-native";
 
-import { AREAS, JOINTS, MOVE_BY_ID } from "../../src/engine";
+import { AREAS, AREA_MUSCLES, JOINTS, MOVE_BY_ID } from "../../src/engine";
+import { BodyMap } from "../../src/ui/BodyMap";
 import { Button, Card, Chip, Empty, Label, Note, Screen, Title, Wrap } from "../../src/ui/components";
 import { clock } from "../../src/ui/format";
 import { type } from "../../src/ui/theme";
+import { WatchButton, youtubeQuery } from "../../src/ui/youtube";
 
 const STYLE_LABEL: Record<string, string> = { dynamic: "Dynamic warm-up", static: "Stretch", yoga: "Yoga pose", pilates: "Pilates", breath: "Breathing" };
 
@@ -24,6 +26,7 @@ export default function MoveDetail() {
     move.prone ? "Done lying face down." : null,
     move.joints.length ? `Loads the ${move.joints.map((j) => JOINTS[j]?.toLowerCase() ?? j).join(" and ")}.` : null,
   ].filter(Boolean) as string[];
+  const worked = [...new Set(move.areas.flatMap((a) => AREA_MUSCLES[a] ?? []))];
 
   return (
     <Screen footer={<Button title="Back" variant="secondary" onPress={() => router.back()} />}>
@@ -44,7 +47,9 @@ export default function MoveDetail() {
             <Chip key={a} label={AREAS[a] ?? a} selected />
           ))}
         </Wrap>
+        {worked.length ? <BodyMap primary={worked} /> : null}
       </Card>
+      <WatchButton id={move.id} query={youtubeQuery("move", move.name, move.style)} />
       {cautions.map((c) => (
         <Note key={c}>{c}</Note>
       ))}

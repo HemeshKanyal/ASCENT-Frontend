@@ -44,7 +44,7 @@ export async function analyzeMeal(input: { image?: string; mediaType?: string; h
 }
 
 export const AI_ERROR_TEXT: Record<AIError, string> = {
-  not_configured: "Photo analysis isn't set up yet — it needs an Anthropic API key on the server (ANTHROPIC_API_KEY in .env.local).",
+  not_configured: "Photo analysis isn't set up yet — it needs GEMINI_API_KEY or ANTHROPIC_API_KEY in .env.local on the server.",
   offline: "Couldn't reach the ASCENT server. Check your connection and that the app server is running.",
   refused: "The AI couldn't analyse this photo. Try another angle or describe the meal instead.",
   busy: "The AI is busy right now — try again in a minute.",

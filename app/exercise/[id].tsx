@@ -1,12 +1,16 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 
-import { EQUIPMENT, JOINTS, PATTERN_LABELS, findAlternatives, getExercise, lastPerformance, profileContext } from "../../src/engine";
+import { EQUIPMENT, JOINTS, PATTERN_LABELS, demoIdFor, exerciseMuscles, findAlternatives, getExercise, lastPerformance, profileContext } from "../../src/engine";
+import { EXERCISE_HOWTO } from "../../src/data/howto";
 import { getProfile, getSessions, saveProfile, type LoggedSession, type Profile } from "../../src/services/trainingStore";
-import { Button, Card, Chip, Empty, Label, Row, Screen, Title, Wrap } from "../../src/ui/components";
-import { muscle, shortDate } from "../../src/ui/format";
-import { colors, type } from "../../src/ui/theme";
+import { BodyMap } from "../../src/ui/BodyMap";
+import { ExerciseDemo } from "../../src/ui/ExerciseDemo";
+import { Button, Card, Empty, Label, Row, Screen, Title } from "../../src/ui/components";
+import { shortDate } from "../../src/ui/format";
+import { colors, fonts, space, type } from "../../src/ui/theme";
+import { WatchButton, youtubeQuery } from "../../src/ui/youtube";
 
 const BIAS_TEXT: Record<string, string> = {
   lengthened: "Hardest when the muscle is stretched — great for growth.",
@@ -33,6 +37,9 @@ export default function ExerciseDetail() {
     );
   }
 
+  const howTo = EXERCISE_HOWTO[exercise.id];
+  const demoId = demoIdFor(exercise);
+  const worked = exerciseMuscles(exercise);
   const last = lastPerformance(exercise.id, sessions);
   const alternatives = profile ? findAlternatives(exercise.id, profileContext(profile), { reason: "dislike", limit: 4 }) : [];
   const isFavorite = profile?.favorites.includes(exercise.id);
@@ -50,25 +57,44 @@ export default function ExerciseDetail() {
     <Screen footer={<Button title="Back" variant="secondary" onPress={() => router.back()} />}>
       <Title kicker={PATTERN_LABELS[exercise.pattern] ?? exercise.pattern}>{exercise.name}</Title>
 
-      {exercise.cue ? (
+      {demoId ? <ExerciseDemo motionId={demoId} primary={worked.primary} secondary={worked.secondary} /> : null}
+
+      {howTo ? (
+        <Card>
+          <Label>How to</Label>
+          {howTo.steps.map((step, i) => (
+            <View key={step} style={{ flexDirection: "row", gap: space.sm }}>
+              <Text style={[type.strong, { fontFamily: fonts.heavy, width: 18 }]}>{i + 1}</Text>
+              <Text style={[type.body, { flex: 1 }]}>{step}</Text>
+            </View>
+          ))}
+          {exercise.cue ? <Text style={[type.small, { fontStyle: "italic" }]}>Key cue: {exercise.cue}</Text> : null}
+        </Card>
+      ) : exercise.cue ? (
         <Card>
           <Label>How to</Label>
           <Text style={type.body}>{exercise.cue}</Text>
         </Card>
       ) : null}
 
+      {howTo?.mistakes.length ? (
+        <Card>
+          <Label>Common mistakes</Label>
+          {howTo.mistakes.map((m) => (
+            <Text key={m} style={type.body}>
+              ✕ {m}
+            </Text>
+          ))}
+        </Card>
+      ) : null}
+
       <Card>
-        <Label>Muscles</Label>
-        <Wrap>
-          {exercise.primary.map((m) => (
-            <Chip key={m} label={muscle(m)} selected />
-          ))}
-          {exercise.secondary.map((m) => (
-            <Chip key={m} label={muscle(m)} />
-          ))}
-        </Wrap>
+        <Label>Muscles worked</Label>
+        <BodyMap primary={worked.primary} secondary={worked.secondary} />
         <Text style={type.small}>{BIAS_TEXT[exercise.bias]}</Text>
       </Card>
+
+      <WatchButton id={exercise.id} query={youtubeQuery("exercise", exercise.name)} />
 
       <Card>
         <Label>Details</Label>
