@@ -1,0 +1,16 @@
+{
+  "name": "ascent-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 8084",
+    "build": "vite build",
+    "preview": "vite preview --port 8085"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.2"
+  }
+}

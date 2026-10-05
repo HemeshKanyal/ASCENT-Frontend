@@ -413,3 +413,73 @@ export function checkMotion(motion, samples = 24) {
   }
   return [...problems];
 }
+
+/**
+ * The same figure as 3D primitives (world units, y up) for real 3D renderers
+ * such as the website hero: capsules for the body, muscle strips on its
+ * surface, spheres, discs (plates) and boxes. No camera, no occlusion tricks.
+ */
+export function scene3D(motion, t, levels = {}) {
+  const { pose, effort } = poseAt(motion, t);
+  const j = solve(pose);
+  const caps = [];
+  const L = j.limbs;
+  const cap = (a, b, r, kind = "body", extra = {}) => caps.push({ a, b, r, kind, ...extra });
+  cap(j.P, j.M, 10);
+  cap(j.M, j.N, 10.5);
+  cap(L.R.hip, L.L.hip, 8.5);
+  cap(L.R.shoulder, L.L.shoulder, 5.5);
+  for (const s of ["R", "L"]) {
+    const side = L[s].side;
+    cap(v.add(L[s].hip, v.mul(j.pel.u, 5)), v.add(L[s].shoulder, v.mul(j.up.u, -8)), 7);
+    const chest = v.add(v.add(j.M, v.mul(j.up.u, 13)), v.add(v.mul(j.up.f, 3.5), v.mul(j.up.r, side * 6)));
+    cap(chest, v.add(chest, v.mul(j.up.u, 8)), 7.5);
+    const l = L[s];
+    cap(l.shoulder, l.elbow, WIDTH.upperArm / 2);
+    cap(l.elbow, l.wrist, WIDTH.forearm / 2);
+    cap(l.wrist, l.hand, WIDTH.hand / 2);
+    cap(l.hip, l.knee, WIDTH.thigh / 2);
+    cap(l.knee, l.ankle, WIDTH.shin / 2);
+    cap(l.heel, l.toe, WIDTH.foot / 2);
+  }
+  cap(j.N, v.add(j.N, v.mul(j.headU, DIM.neck + 3)), WIDTH.neck / 2);
+  const spheres = [{ c: j.H, r: DIM.head }, { c: v.add(j.H, v.mul(j.headF, DIM.head * 0.95)), r: 2.2 }];
+
+  for (const [id, level] of Object.entries(levels)) {
+    for (const m of MUSCLE_SHAPES[id] ?? []) {
+      for (const s of ["R", "L"]) {
+        const fr = { ...segmentFrame(j, s, m.seg), seg: m.seg };
+        const p1 = surfacePoint(fr, m.from[0], m.from[1], m.r * 1.08);
+        const p2 = surfacePoint(fr, m.to[0], m.to[1], m.r * 1.08);
+        cap(p1.p, p2.p, m.w / 2, "muscle", { level, glow: level === 2 ? 0.6 + 0.4 * effort : 0.45 + 0.2 * effort });
+      }
+    }
+  }
+
+  const discs = [];
+  const boxes = [];
+  const hands = { R: L.R.hand, L: L.L.hand };
+  const at = (spec) => (typeof spec === "string" ? j.points[spec] : spec);
+  for (const p of [...(motion.props ?? []), ...(pose.props ?? [])]) {
+    if (p.type === "box") boxes.push({ c: p.c, size: p.size, pitch: p.pitch ?? 0 });
+    else if (p.type === "rod") cap(at(p.a), at(p.b), (p.w ?? 3) / 2, "prop");
+    else if (p.type === "cable") cap(p.from ? at(p.from) : hands[p.hand ?? "R"], p.to, 0.5, "prop");
+    else if (p.type === "barbell") {
+      const off = p.local ? v.add(v.mul(j.up.f, p.local[0]), v.mul(j.up.u, p.local[1])) : p.offset ?? [0, 0, 0];
+      const c = p.on ? v.add(at(p.on), off) : v.lerp(hands.R, hands.L, 0.5);
+      const axis = p.axis ?? v.norm(v.sub(hands.R, hands.L));
+      const half = p.half ?? 64;
+      cap(v.add(c, v.mul(axis, -half)), v.add(c, v.mul(axis, half)), 1.3, "prop");
+      for (const sg of [-1, 1]) discs.push({ c: v.add(c, v.mul(axis, sg * (half - 12))), n: axis, r: p.r ?? 20, thick: 4 });
+    } else if (p.type === "dumbbell") {
+      for (const s of p.hands ?? ["R", "L"]) {
+        const axis = v.norm(v.sub(L[s].wrist, L[s].elbow));
+        const across = v.norm(v.cross(axis, j.up.f));
+        const ax = p.grip === "neutral" ? across : v.mul(j.up.r, 1);
+        cap(v.add(hands[s], v.mul(ax, -8)), v.add(hands[s], v.mul(ax, 8)), 1.3, "prop");
+        for (const sg of [-1, 1]) discs.push({ c: v.add(hands[s], v.mul(ax, sg * 7)), n: ax, r: 6.5, thick: 3 });
+      }
+    }
+  }
+  return { caps, spheres, discs, boxes, effort, joints: jointReport(j).angles };
+}

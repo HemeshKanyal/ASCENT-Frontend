@@ -606,3 +606,12 @@ export function demoViewBox(motion: DemoMotion): [number, number, number, number
 export function demoDuration(motion: DemoMotion): number;
 export function demoIdFor(exercise: Pick<Exercise, "id">): string | null;
 export function checkMotion(motion: DemoMotion, samples?: number): string[];
+export interface Scene3D {
+  caps: { a: number[]; b: number[]; r: number; kind: "body" | "muscle" | "prop"; level?: 1 | 2; glow?: number }[];
+  spheres: { c: number[]; r: number }[];
+  discs: { c: number[]; n: number[]; r: number; thick: number }[];
+  boxes: { c: number[]; size: number[]; pitch: number }[];
+  effort: number;
+  joints: Record<string, number>;
+}
+export function scene3D(motion: DemoMotion, t: number, levels?: Record<string, 1 | 2>): Scene3D;

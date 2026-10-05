@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>ASCENT — Train without repeating</title>
+    <meta name="description" content="ASCENT is a free, offline-first training app: workouts that never repeat, anatomically checked 3D exercise demos, muscle-level anatomy, AI meal estimates and a private community." />
+    <meta name="theme-color" content="#000000" />
+    <meta property="og:title" content="ASCENT — Train without repeating" />
+    <meta property="og:description" content="Workouts that never repeat. Demos you can trust. Anatomy down to the muscle head." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <header class="nav">
+      <a class="brand" href="#top" aria-label="ASCENT home"><span class="brand-mark">▲</span><em>Ascent</em></a>
+      <nav aria-label="Sections">
+        <a href="#method">Method</a>
+        <a href="#demos">Demos</a>
+        <a href="#anatomy">Anatomy</a>
+        <a href="#fuel">Fuel</a>
+        <a href="#download">Download</a>
+      </nav>
+      <a class="btn btn-ghost btn-small" data-link="webapp" href="#download">Open web app</a>
+    </header>
+
+    <main id="top">
+      <!-- HERO ──────────────────────────────────────────────────────────── -->
+      <section class="hero" aria-labelledby="hero-title">
+        <canvas id="hero-canvas" aria-hidden="true"></canvas>
+        <div class="hero-fallback" aria-hidden="true"></div>
+
+        <div class="hud hud-tl mono" aria-hidden="true">
+          <div>SYS://ASCENT <span class="dim">v1.0</span></div>
+          <div class="dim">RIG.3D · 41 MUSCLES · 146 MOTIONS</div>
+        </div>
+        <div class="hud hud-tr mono" aria-live="off">
+          <div class="dim">MOTION</div>
+          <div id="hud-motion">BACK_SQUAT</div>
+          <div class="hud-angles" id="hud-angles"></div>
+        </div>
+        <div class="hud hud-bl mono" aria-hidden="true">
+          <div class="dim">STATUS</div>
+          <div><span class="blink">●</span> JOINTS WITHIN RANGE</div>
+        </div>
+
+        <div class="hero-copy">
+          <p class="kicker mono">// train without repeating</p>
+          <h1 id="hero-title" class="glitch" data-text="Ascent">Ascent</h1>
+          <p class="lede">Workouts that never repeat. Demos you can trust. Anatomy down to the muscle head. <span class="dim">Free, offline-first, and yours.</span></p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#download">Download for Android</a>
+            <a class="btn btn-ghost" data-link="webapp" href="#download">Open the web app</a>
+          </div>
+        </div>
+
+        <div class="motion-picker" role="group" aria-label="Choose an exercise to watch">
+          <button data-motion="back_squat" class="on">Squat</button>
+          <button data-motion="conventional_deadlift">Deadlift</button>
+          <button data-motion="barbell_bench_press">Bench</button>
+          <button data-motion="pull_up">Pull-up</button>
+          <button data-motion="barbell_hip_thrust">Hip thrust</button>
+          <button data-motion="dumbbell_lateral_raise">Raise</button>
+          <button data-motion="kettlebell_swing">Swing</button>
+        </div>
+        <p class="drag-hint mono" aria-hidden="true">drag to orbit ⟲</p>
+      </section>
+
+      <div class="ticker mono" aria-hidden="true"><div class="ticker-track" data-ticker></div></div>
+      <!-- METHOD ───────────────────────────────────────────────────────── -->
+      <section id="method" class="section" aria-labelledby="method-title">
+        <div class="section-head">
+          <p class="kicker mono">01 // method</p>
+          <h2 id="method-title">Never the same workout <em>twice</em>.</h2>
+          <p class="lede">Anchors stay put so you can overload them week after week. Rotators change every session, so each muscle is trained from new angles and nothing goes stale. Every target muscle is still covered, whatever your split.</p>
+        </div>
+        <div class="rotation" aria-live="polite">
+          <div class="rotation-legend mono">
+            <span><i class="sw sw-anchor"></i> anchor · fixed for the block</span>
+            <span><i class="sw sw-rotator"></i> rotator · re-picked every session</span>
+          </div>
+          <div class="rotation-grid" id="rotation-grid"></div>
+          <button class="btn btn-ghost btn-small" id="rotate-btn">⟳ Generate next session</button>
+        </div>
+      </section>
+
+      <!-- DEMOS ────────────────────────────────────────────────────────── -->
+      <section id="demos" class="section" aria-labelledby="demos-title">
+        <div class="section-head">
+          <p class="kicker mono">02 // demos</p>
+          <h2 id="demos-title">Every rep, <em>anatomically checked</em>.</h2>
+          <p class="lede">Each of the 146 exercises has its own 3D demo built from coaching cues: bar over mid-foot, real depth, the joints that move and the ones that don't. Automated checks reject backward knees, over-bent elbows and hands that can't reach the bar.</p>
+        </div>
+        <div class="demo-search">
+          <label class="mono dim" for="demo-input">search_exercise://</label>
+          <input id="demo-input" list="demo-list" placeholder="e.g. Romanian Deadlift" autocomplete="off" />
+          <datalist id="demo-list"></datalist>
+        </div>
+        <div class="demo-grid" id="demo-grid"></div>
+      </section>
+
+      <div class="ticker mono" aria-hidden="true"><div class="ticker-track" data-ticker></div></div>
+      <!-- ANATOMY ──────────────────────────────────────────────────────── -->
+      <section id="anatomy" class="section" aria-labelledby="anatomy-title">
+        <div class="section-head">
+          <p class="kicker mono">03 // anatomy</p>
+          <h2 id="anatomy-title">Down to the <em>muscle head</em>.</h2>
+          <p class="lede">41 named muscles, front and back. Each exercise lights up the heads it really trains: incline press → clavicular pec, seated calf raise → soleus, hammer curl → brachialis. Hover or tap a muscle.</p>
+        </div>
+        <div class="anatomy">
+          <div class="anatomy-figures" id="anatomy-figures"></div>
+          <aside class="anatomy-panel">
+            <div class="mono dim">selected://</div>
+            <h3 id="muscle-name">Tap a muscle</h3>
+            <p id="muscle-group" class="dim"></p>
+            <div class="mono dim trained-label">trained_by://</div>
+            <ul id="muscle-exercises" class="chips"></ul>
+          </aside>
+        </div>
+      </section>
+
+      <!-- FUEL ─────────────────────────────────────────────────────────── -->
+      <section id="fuel" class="section split" aria-labelledby="fuel-title">
+        <div class="section-head">
+          <p class="kicker mono">04 // fuel</p>
+          <h2 id="fuel-title">Photograph the plate. <em>Get the numbers.</em></h2>
+          <p class="lede">Snap a meal or describe it. ASCENT's AI estimates portions the way people actually eat — rotis, katoris, glasses — then logs calories, protein, carbs, fat and fibre. Doctor's limits always override the app's targets.</p>
+        </div>
+        <div class="scan" aria-label="Example meal estimate">
+          <div class="scan-frame">
+            <div class="plate" aria-hidden="true">
+              <span class="food food-a"></span><span class="food food-b"></span><span class="food food-c"></span>
+            </div>
+            <div class="scan-line" aria-hidden="true"></div>
+            <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
+          </div>
+          <ul class="scan-out mono" id="scan-out">
+            <li><span>Roti × 2</span><span>80 g</span><span>240 kcal</span></li>
+            <li><span>Dal tadka · 1 katori</span><span>180 g</span><span>175 kcal</span></li>
+            <li><span>Milk · 1 glass</span><span>250 ml</span><span>155 kcal</span></li>
+            <li class="total"><span>Total</span><span>P 22 g</span><span>570 kcal</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- MORE ─────────────────────────────────────────────────────────── -->
+      <section class="section" aria-labelledby="more-title">
+        <div class="section-head">
+          <p class="kicker mono">05 // everything else</p>
+          <h2 id="more-title">Built for <em>everyone</em>, not just lifters.</h2>
+        </div>
+        <div class="features">
+          <article class="feature">
+            <h3>Streaks that respect rest</h3>
+            <p>Planned rest days keep your streak alive. Badges for consistency, not punishment.</p>
+            <div class="heatmap" id="heatmap" aria-hidden="true"></div>
+          </article>
+          <article class="feature">
+            <h3>Run, swim, ride, flow</h3>
+            <p>GPS runs and rides, pool laps, HYROX, yoga and mobility flows, sports — with warm-ups, cool-downs and technique for each.</p>
+          </article>
+          <article class="feature">
+            <h3>Health first</h3>
+            <p>Injuries, pregnancy, low bone density, high uric acid: the plan routes around them and your doctor's numbers win.</p>
+          </article>
+          <article class="feature">
+            <h3>Private by default</h3>
+            <p>Everything lives on your phone. Only what you choose to post reaches friends; route ends are trimmed.</p>
+          </article>
+          <article class="feature">
+            <h3>Crew</h3>
+            <p>Friends, clubs, kudos and weekly leaderboards — totals only, never your private sessions.</p>
+          </article>
+          <article class="feature">
+            <h3>Works offline</h3>
+            <p>Training, food and streaks need no signal. The community syncs when you're back online.</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="ticker mono" aria-hidden="true"><div class="ticker-track" data-ticker></div></div>
+      <!-- DOWNLOAD ─────────────────────────────────────────────────────── -->
+      <section id="download" class="section download" aria-labelledby="download-title">
+        <canvas id="penrose-canvas" aria-hidden="true"></canvas>
+        <p class="kicker mono">06 // begin</p>
+        <h2 id="download-title">Begin the <em>ascent</em>.</h2>
+        <p class="lede">Free, no ads, no subscriptions.</p>
+        <div class="cta-row center">
+          <a class="btn btn-primary" id="apk-link" href="#download" aria-disabled="true">Android APK · coming soon</a>
+          <a class="btn btn-ghost" data-link="webapp" href="#download">Open the web app</a>
+        </div>
+        <p class="mono dim small" id="apk-note">v1.0 · Android 8+ · install from file</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span class="brand"><span class="brand-mark">▲</span><em>Ascent</em></span>
+      <span class="mono dim">© <span id="year"></span> · made by Hemesh</span>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
