@@ -4,7 +4,6 @@
  * only part that needs an account and a server.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
 import { File, UploadType } from "expo-file-system";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
@@ -15,16 +14,17 @@ import { updateSession, type LoggedSession } from "./trainingStore";
 
 // ── Server address ───────────────────────────────────────────────────────
 
+/** The hosted ASCENT-Backend (Render). */
+export const HOSTED_API = "https://ascent-backend-1qt8.onrender.com";
+
 /**
- * EXPO_PUBLIC_API_URL wins (set it once the backend is hosted). Otherwise use
- * the computer running Expo on port 5000 — works on the same Wi-Fi, not over --tunnel.
+ * The hosted backend by default, so community works on any network.
+ * EXPO_PUBLIC_API_URL overrides it — e.g. http://<your-computer-ip>:5000 to
+ * develop against a local backend.
  */
 export function apiUrl() {
   const env = process.env.EXPO_PUBLIC_API_URL;
-  if (env) return env.replace(/\/$/, "");
-  if (Platform.OS === "web" && typeof window !== "undefined") return `${window.location.protocol}//${window.location.hostname}:5000`;
-  const host = Constants.expoConfig?.hostUri?.split(":")[0];
-  return `http://${host && !host.endsWith("exp.direct") ? host : "localhost"}:5000`;
+  return (env || HOSTED_API).replace(/\/$/, "");
 }
 
 // ── Session (token) ──────────────────────────────────────────────────────

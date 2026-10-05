@@ -93,5 +93,5 @@ GPS recording lives in `src/hooks/useGpsTracker.ts` (foreground in Expo Go; back
 - **Reminders** — `src/services/reminders.ts` (expo-notifications, local only). Workout and streak-saver reminders are one-off notifications for the next 7 days, rebuilt every time Today loads, so they name the planned session and skip days already trained. Meals, water, supplements and weigh-in repeat on their own. Not available on web.
 - **Photos & videos** — `src/services/mediaStore.ts` copies picked files into the app's documents folder (`LoggedSession.media`). Clips are capped at 60 s, 8 items per session. Phone only.
 - **Community** — `src/services/community.ts` talks to ASCENT-Backend (`/api/friends`, `/api/posts`, `/api/feed`, `/api/clubs`, `/api/leaderboard`, `/api/notifications`, `/api/media`). The JWT lives in SecureStore (localStorage on web).
-  - Server address: `EXPO_PUBLIC_API_URL`, else the Expo host on port 5000 (same Wi-Fi only; not over `--tunnel`).
+  - Server address: the hosted backend on Render (`HOSTED_API`); `EXPO_PUBLIC_API_URL` overrides it (e.g. a local backend on port 5000).
   - Privacy: nothing is shared until a session is posted. Routes are trimmed 200 m at each end by default (`hideRouteEnds`). Leaderboards only receive weekly totals. Media is served through signed links that expire after 24 h.

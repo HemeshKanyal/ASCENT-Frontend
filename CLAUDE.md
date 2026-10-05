@@ -24,7 +24,7 @@ Expo SDK 57 / React Native 0.86 / React 19 workout + nutrition app, Expo Router 
 - Web is server-rendered: modules touching `window`/`document` at import (e.g. Leaflet) must be loaded lazily in an effect.
 - React Compiler lint: no `setState` directly in effects' sync body, no `Date.now()`/`Math.random()` in render (keep `now` in state), no ref reads in render.
 - Web screenshots don't exercise native-only code (camera, GPS, notifications, file system, video). Also build the iOS/Android bundle (`/node_modules/expo-router/entry.bundle?platform=ios&dev=true&hot=false&transform.routerRoot=app`) and say plainly what wasn't verified on a device.
-- Secrets: `GEMINI_API_KEY` (used first, free tier) or `ANTHROPIC_API_KEY` go in `.env.local` (server-only, never `EXPO_PUBLIC_*`). Community server URL: `EXPO_PUBLIC_API_URL`, else the Expo host on port 5000 (same Wi-Fi only, not over `--tunnel`).
+- Secrets: `GEMINI_API_KEY` (used first, free tier) or `ANTHROPIC_API_KEY` go in `.env.local` (server-only, never `EXPO_PUBLIC_*`). Community server: hosted on Render (`HOSTED_API` in `src/services/community.ts`); set `EXPO_PUBLIC_API_URL=http://<ip>:5000` to use a local backend instead.
 
 ## Style
 
