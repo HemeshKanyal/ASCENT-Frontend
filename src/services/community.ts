@@ -32,7 +32,7 @@ export function apiUrl() {
 const TOKEN = "ascent_token";
 const ME = "COMMUNITY_ME";
 
-export type PublicUser = { id: string; name: string; handle: string; bio?: string };
+export type PublicUser = { id: string; name: string; handle: string; bio?: string; avatarUrl?: string | null };
 export type Me = PublicUser & { email: string; friendCode: string };
 
 async function getToken() {
@@ -94,7 +94,7 @@ async function api<T>(path: string, init: { method?: string; body?: unknown } = 
 }
 
 /** Absolute URL for a signed media path from the server. */
-export const mediaUrl = (path: string) => (path.startsWith("http") ? path : `${apiUrl()}${path}`);
+export const mediaUrl = (path: string) => (path.startsWith("/") ? `${apiUrl()}${path}` : path);
 
 // ── Account ──────────────────────────────────────────────────────────────
 
@@ -247,29 +247,89 @@ export async function shareSession(
   const pending = post.media.length ? [] : (s.media ?? []).filter((m) => opts.mediaUris.includes(m.uri));
   for (const [i, m] of pending.entries()) {
     onProgress?.(`Uploading ${m.type === "video" ? "video" : "photo"} ${i + 1} of ${pending.length}…`);
-    const token = await getToken();
-    const params = new URLSearchParams();
-    if (m.width) params.set("width", String(m.width));
-    if (m.height) params.set("height", String(m.height));
-    if (m.durationMs) params.set("durationMs", String(Math.round(m.durationMs)));
-    const res = await new File(m.uri).upload(`${apiUrl()}/api/posts/${post.id}/media?${params}`, {
-      httpMethod: "POST",
-      uploadType: UploadType.BINARY_CONTENT,
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": m.mimeType ?? (m.type === "video" ? "video/mp4" : "image/jpeg") },
-    });
-    if (res.status >= 300) {
-      let message = `Upload failed (${res.status})`;
-      try {
-        message = JSON.parse(res.body).message ?? message;
-      } catch {
-        // keep default
-      }
-      throw new ApiError(message, res.status);
-    }
-    latest = JSON.parse(res.body).post as Post;
+    latest = await uploadPostMedia(post.id, m);
   }
   await updateSession(s.id, { postId: post.id });
   return latest;
+}
+
+export type UploadItem = { uri: string; type: "image" | "video"; mimeType?: string; width?: number; height?: number; durationMs?: number };
+
+/** Upload one photo/clip to a post as the raw request body. Phones stream the file; web sends a Blob. */
+export async function uploadPostMedia(postId: string, m: UploadItem): Promise<Post> {
+  const token = await getToken();
+  const params = new URLSearchParams();
+  if (m.width) params.set("width", String(Math.round(m.width)));
+  if (m.height) params.set("height", String(Math.round(m.height)));
+  if (m.durationMs) params.set("durationMs", String(Math.round(m.durationMs)));
+  const url = `${apiUrl()}/api/posts/${postId}/media?${params}`;
+  const mimeType = m.mimeType ?? (m.type === "video" ? "video/mp4" : "image/jpeg");
+  const headers = { Authorization: `Bearer ${token}`, "Content-Type": mimeType };
+
+  let status: number;
+  let body: string;
+  try {
+    if (Platform.OS === "web") {
+      const blob = await (await fetch(m.uri)).blob();
+      const res = await fetch(url, { method: "POST", headers, body: blob });
+      status = res.status;
+      body = await res.text();
+    } else {
+      const res = await new File(m.uri).upload(url, { httpMethod: "POST", uploadType: UploadType.BINARY_CONTENT, headers });
+      status = res.status;
+      body = res.body;
+    }
+  } catch {
+    throw new ApiError(OFFLINE_TEXT, 0);
+  }
+  let json: { post?: Post; message?: string } = {};
+  try {
+    json = JSON.parse(body);
+  } catch {
+    // non-JSON error page
+  }
+  if (status >= 300 || !json.post) throw new ApiError(json.message ?? `Upload failed (${status})`, status);
+  return json.post;
+}
+
+export type PostKind = "food" | "progress" | "photo";
+
+/** A post that isn't tied to a logged session: a meal, a progress photo, anything. */
+export async function createPost(
+  p: { kind: PostKind; title?: string; caption: string; visibility: "friends" | "private"; clubs: string[]; media: UploadItem[] },
+  onProgress?: (text: string) => void
+) {
+  const { post } = await api<{ post: Post }>("/api/posts", {
+    method: "POST",
+    body: {
+      clientId: `post_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      date: new Date().toISOString(),
+      kind: p.kind,
+      title: p.title,
+      caption: p.caption,
+      visibility: p.visibility,
+      clubs: p.clubs,
+    },
+  });
+  let latest = post;
+  for (const [i, m] of p.media.entries()) {
+    onProgress?.(`Uploading ${m.type === "video" ? "video" : "photo"} ${i + 1} of ${p.media.length}…`);
+    latest = await uploadPostMedia(post.id, m);
+  }
+  return latest;
+}
+
+/** Set the profile photo from a base64 JPEG. */
+export async function uploadAvatar(base64: string) {
+  const { user } = await api<{ user: Me }>("/api/auth/me/avatar", { method: "PUT", body: { mimeType: "image/jpeg", data: base64 } });
+  await AsyncStorage.setItem(ME, JSON.stringify(user));
+  return user;
+}
+
+export async function removeAvatar() {
+  const { user } = await api<{ user: Me }>("/api/auth/me/avatar", { method: "DELETE" });
+  await AsyncStorage.setItem(ME, JSON.stringify(user));
+  return user;
 }
 
 // ── Clubs ────────────────────────────────────────────────────────────────

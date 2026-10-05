@@ -34,7 +34,7 @@ export default function UserScreen() {
   return (
     <Screen footer={<Button title="Back" variant="secondary" onPress={() => router.back()} />}>
       <Row gap={space.md}>
-        <Avatar name={who} size={56} />
+        <Avatar name={who} uri={posts[0]?.owner.avatarUrl} size={56} />
         <Title kicker={posts[0] ? `@${posts[0].owner.handle}` : "Profile"}>{who}</Title>
       </Row>
       {error ? <Note>{error}</Note> : null}

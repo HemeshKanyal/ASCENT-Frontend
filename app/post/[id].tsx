@@ -97,7 +97,7 @@ export default function PostScreen() {
         {comments.length ? (
           comments.map((c) => (
             <Row key={c.id} gap={space.md} style={{ alignItems: "flex-start" }}>
-              <Avatar name={c.author.name} size={30} />
+              <Avatar name={c.author.name} uri={c.author.avatarUrl} size={30} />
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={type.small}>
                   <Text style={{ color: colors.text }}>{c.mine ? "You" : c.author.name}</Text> · {timeAgo(c.date, now)}

@@ -62,7 +62,7 @@ export default function ClubScreen() {
         {board.slice(0, 10).map((r, i) => (
           <Row key={r.user.id} gap={space.md}>
             <Text style={{ fontFamily: fonts.serif, fontSize: 20, color: i < 3 ? colors.text : colors.faint, width: 24 }}>{i + 1}</Text>
-            <Avatar name={r.user.name} size={30} />
+            <Avatar name={r.user.name} uri={r.user.avatarUrl} size={30} />
             <Text style={[type.strong, { flex: 1 }]}>{r.me ? "You" : r.user.name}</Text>
             <Text style={type.small}>{`${Math.floor(r.minutes / 60)}h ${r.minutes % 60}m`}</Text>
           </Row>
@@ -82,7 +82,7 @@ export default function ClubScreen() {
           <View style={{ gap: space.sm }}>
             {club.members.map((m) => (
               <Row key={m.id} gap={space.md}>
-                <Avatar name={m.name} size={30} />
+                <Avatar name={m.name} uri={m.avatarUrl} size={30} />
                 <Text style={type.body}>{m.name}</Text>
                 <Text style={type.small}>@{m.handle}</Text>
               </Row>

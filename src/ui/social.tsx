@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { Image } from "expo-image";
 import { forwardRef, useState } from "react";
 import { Pressable, Text, TextInput, View, type TextInputProps } from "react-native";
 
@@ -25,7 +26,16 @@ export const Input = forwardRef<TextInput, TextInputProps>(function Input(props,
   return <TextInput ref={ref} placeholderTextColor={colors.faint} autoCorrect={false} {...props} style={[inputStyle, props.style]} />;
 });
 
-export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
+export function Avatar({ name, size = 40, uri }: { name: string; size?: number; uri?: string | null }) {
+  if (uri) {
+    return (
+      <Image
+        source={{ uri: mediaUrl(uri) }}
+        style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.borderStrong }}
+        contentFit="cover"
+      />
+    );
+  }
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -80,7 +90,9 @@ export function PostCard({ post, onOpen, onOpenUser, now }: { post: Post; onOpen
   const [kudos, setKudos] = useState({ on: post.kudoed, count: post.kudosCount });
   const [viewing, setViewing] = useState<MediaItem | null>(null);
   const media: MediaItem[] = post.media.map((m) => ({ uri: mediaUrl(m.url), type: m.type, durationMs: m.durationMs }));
-  const activityName = ACTIVITY_BY_ID[post.activity ?? ""]?.name ?? (post.kind === "strength" ? "Strength" : post.kind === "mobility" ? "Mobility" : "Workout");
+  const kindName: Record<string, string> = { strength: "Strength", mobility: "Mobility", food: "Food", progress: "Progress", photo: "Post" };
+  const activityName = ACTIVITY_BY_ID[post.activity ?? ""]?.name ?? kindName[post.kind ?? ""] ?? "Workout";
+  const stats = postStats(post);
 
   const toggleKudos = async () => {
     if (post.mine) return;
@@ -98,7 +110,7 @@ export function PostCard({ post, onOpen, onOpenUser, now }: { post: Post; onOpen
     <Card onPress={onOpen}>
       <Pressable onPress={onOpenUser}>
         <Row gap={space.md}>
-          <Avatar name={post.owner.name} />
+          <Avatar name={post.owner.name} uri={post.owner.avatarUrl} />
           <View style={{ flex: 1 }}>
             <Text style={type.strong}>{post.mine ? "You" : post.owner.name}</Text>
             <Text style={type.small}>
@@ -108,16 +120,18 @@ export function PostCard({ post, onOpen, onOpenUser, now }: { post: Post; onOpen
           </View>
         </Row>
       </Pressable>
-      <Text style={type.h2}>{post.title}</Text>
+      {post.title ? <Text style={type.h2}>{post.title}</Text> : null}
       {post.caption ? <Text style={type.body}>{post.caption}</Text> : null}
-      <Row gap={0}>
-        {postStats(post).map(([v, l]) => (
-          <View key={l} style={{ flex: 1 }}>
-            <Text style={{ fontFamily: fonts.serif, fontSize: 24, color: colors.text }}>{v}</Text>
-            <Text style={[type.small, { fontSize: 11 }]}>{l}</Text>
-          </View>
-        ))}
-      </Row>
+      {stats.length ? (
+        <Row gap={0}>
+          {stats.map(([v, l]) => (
+            <View key={l} style={{ flex: 1 }}>
+              <Text style={{ fontFamily: fonts.serif, fontSize: 24, color: colors.text }}>{v}</Text>
+              <Text style={[type.small, { fontSize: 11 }]}>{l}</Text>
+            </View>
+          ))}
+        </Row>
+      ) : null}
       {post.route?.length ? (
         <View style={{ alignItems: "center", backgroundColor: colors.surface, borderRadius: radius.md, paddingVertical: space.sm }}>
           <RouteSvg segments={toSegments(post.route)} width={300} height={150} />

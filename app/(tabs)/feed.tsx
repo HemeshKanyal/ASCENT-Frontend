@@ -143,6 +143,7 @@ export default function FeedScreen() {
           <Title kicker="Community">Your crew</Title>
         </View>
         <Row gap={space.xs} style={{ paddingBottom: space.sm }}>
+          <IconButton icon="add-circle-outline" onPress={() => router.push("/compose")} />
           <IconButton icon="notifications-outline" badge={unread} onPress={() => router.push("/inbox")} />
           <IconButton icon="person-add-outline" onPress={() => router.push("/friends")} />
           <IconButton icon="flag-outline" onPress={() => router.push("/clubs")} />
@@ -161,6 +162,16 @@ export default function FeedScreen() {
         />
       </Wrap>
       {error ? <Note>{error}</Note> : null}
+
+      {tab === "feed" ? (
+        <Card onPress={() => router.push("/compose")}>
+          <Row gap={space.md}>
+            <Avatar name={me.name} uri={me.avatarUrl} size={40} />
+            <Text style={[type.body, { flex: 1, color: colors.muted }]}>Share a workout, a meal, a photo…</Text>
+            <Ionicons name="add-circle" size={30} color={colors.text} />
+          </Row>
+        </Card>
+      ) : null}
 
       {tab === "feed" ? (
         posts === null ? (
@@ -191,7 +202,7 @@ export default function FeedScreen() {
         ) : (
           <Empty
             title="Quiet in here"
-            body={`Share your code ${me.friendCode} with friends, or post an activity from its page — tap any session under "Done today".`}
+            body={`Share your code ${me.friendCode} with friends, then post a workout, a meal or a photo with the + button.`}
             action={<Button title="Add friends" onPress={() => router.push("/friends")} />}
           />
         )
@@ -216,7 +227,7 @@ export default function FeedScreen() {
               board.map((r, i) => (
                 <Row key={r.user.id} gap={space.md}>
                   <Text style={{ fontFamily: fonts.serif, fontSize: 22, color: i < 3 ? colors.text : colors.faint, width: 26 }}>{i + 1}</Text>
-                  <Avatar name={r.user.name} size={34} />
+                  <Avatar name={r.user.name} uri={r.user.avatarUrl} size={34} />
                   <View style={{ flex: 1 }}>
                     <Text style={[type.strong, r.me && { textDecorationLine: "underline" }]}>{r.me ? "You" : r.user.name}</Text>
                     {r.streakWeeks ? <Text style={type.small}>{r.streakWeeks}-week streak</Text> : null}
