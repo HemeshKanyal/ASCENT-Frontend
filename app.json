@@ -20,7 +20,11 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.hemeshkanyal.ascent",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "single",
@@ -75,6 +79,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4fe0b50e-df6b-457c-8d05-09d65b30b4bc"
+      }
+    },
+    "owner": "h83629048"
   }
 }
