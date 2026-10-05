@@ -17,10 +17,12 @@ import {
   type Profile,
 } from "../../src/services/trainingStore";
 import { cachedMe, deleteAccount, signOut, type Me } from "../../src/services/community";
+import { clearProfilePhoto, getLocalPhoto, pickProfilePhoto } from "../../src/services/profilePhoto";
 import { loadProgress, resetStreakData, type Progress } from "../../src/services/streakStore";
 import { Button, Card, Chip, Label, Loading, Row, Screen, Title, Wrap } from "../../src/ui/components";
 import { LEVEL_OPTIONS } from "../../src/ui/editors";
 import { Heatmap } from "../../src/ui/Heatmap";
+import { Avatar } from "../../src/ui/social";
 import { StreakSummary } from "../../src/ui/Streaks";
 import { colors, space, type } from "../../src/ui/theme";
 
@@ -43,6 +45,8 @@ export default function ProfileScreen() {
   const [sessions, setSessions] = useState<LoggedSession[]>([]);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [me, setMe] = useState<Me | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoMenu, setPhotoMenu] = useState(false);
   const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false);
   const [notice, setNotice] = useState("");
   const [confirmReset, setConfirmReset] = useState(false);
@@ -53,6 +57,7 @@ export default function ProfileScreen() {
       getSessions().then(setSessions);
       loadProgress().then(setProgress);
       cachedMe().then(setMe);
+      getLocalPhoto().then(setPhoto);
     }, [])
   );
 
@@ -82,7 +87,51 @@ export default function ProfileScreen() {
 
   return (
     <Screen>
-      <Title kicker="Profile">Your training</Title>
+      <Row gap={space.lg}>
+        <Avatar name={me?.name ?? "You"} uri={photo ?? me?.avatarUrl} size={76} />
+        <View style={{ flex: 1, gap: 6 }}>
+          <Title kicker="Profile">{me?.name ?? "Your training"}</Title>
+          <Text style={[type.small, { color: colors.text, textDecorationLine: "underline" }]} onPress={() => setPhotoMenu(!photoMenu)}>
+            {photo || me?.avatarUrl ? "Change photo" : "Add profile photo"}
+          </Text>
+        </View>
+      </Row>
+      {photoMenu ? (
+        <Row>
+          {(["camera", "library"] as const).map((src) => (
+            <Button
+              key={src}
+              title={src === "camera" ? "Take photo" : "Choose photo"}
+              variant="secondary"
+              style={{ flex: 1 }}
+              onPress={async () => {
+                setPhotoMenu(false);
+                try {
+                  const r = await pickProfilePhoto(src);
+                  if (r) {
+                    setPhoto(r.uri);
+                    setNotice(r.synced ? "Photo updated — friends will see it too." : "Photo saved. Sign in to Crew to show it to friends.");
+                  }
+                } catch (e) {
+                  setNotice((e as Error).message === "camera_denied" ? "Camera access is off — allow it in Settings." : "Couldn't update the photo — try again.");
+                }
+              }}
+            />
+          ))}
+          {photo || me?.avatarUrl ? (
+            <Button
+              title="Remove"
+              variant="ghost"
+              onPress={async () => {
+                setPhotoMenu(false);
+                await clearProfilePhoto().catch(() => {});
+                setPhoto(null);
+                setMe(await cachedMe());
+              }}
+            />
+          ) : null}
+        </Row>
+      ) : null}
 
       {progress ? <StreakSummary s={progress.streaks} badges={progress.badges} onPress={() => router.push("/achievements")} /> : null}
 

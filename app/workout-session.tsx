@@ -18,7 +18,7 @@ import { colors, fonts, radius, space, type } from "../src/ui/theme";
 import { BalanceCard } from "../src/ui/BalanceCard";
 
 type Rest = { endsAt: number; total: number } | null;
-type Summary = { minutes: number; sets: number; highlights: { kind: string; text: string }[]; balance: BalanceItem[] };
+type Summary = { id: string; minutes: number; sets: number; highlights: { kind: string; text: string }[]; balance: BalanceItem[] };
 
 export default function WorkoutSession() {
   const [session, setSession] = useState<ActiveSession | null>(null);
@@ -54,7 +54,14 @@ export default function WorkoutSession() {
 
   if (summary) {
     return (
-      <Screen footer={<Button title="Done" onPress={() => router.replace("/")} />}>
+      <Screen
+        footer={
+          <Row>
+            <Button title="Done" variant="secondary" onPress={() => router.replace("/")} style={{ flex: 1 }} />
+            <Button title="Post to friends" onPress={() => router.replace({ pathname: "/share/[id]", params: { id: summary.id } })} style={{ flex: 2 }} />
+          </Row>
+        }
+      >
         <Title kicker="Workout complete">Nice work.</Title>
         <Row gap={space.md}>
           <Stat value={`${summary.minutes}′`} label="Duration" />
@@ -69,6 +76,7 @@ export default function WorkoutSession() {
           </Card>
         ))}
         <BalanceCard items={summary.balance} title="Your week so far" />
+        <Button title="Add photos or a clip" variant="ghost" onPress={() => router.replace({ pathname: "/activity/[id]", params: { id: summary.id } })} />
       </Screen>
     );
   }
@@ -130,6 +138,7 @@ export default function WorkoutSession() {
   const finish = async () => {
     const { session: logged, highlights, balance } = await finishWorkout(session);
     setSummary({
+      id: logged.id,
       minutes: logged.durationMinutes ?? 0,
       sets: logged.exercises.reduce((n, e) => n + e.sets.length, 0),
       highlights,

@@ -4,6 +4,7 @@ import { Pressable, Switch, Text, View } from "react-native";
 
 import {
   REMINDERS_SUPPORTED,
+  REMINDERS_UNAVAILABLE_TEXT,
   getReminders,
   permissionStatus,
   requestPermission,
@@ -111,7 +112,7 @@ export default function RemindersScreen() {
       <Title kicker="Profile" sub="Reminders follow your plan: rest days stay quiet, and a day you've already trained gets no nagging.">
         Reminders
       </Title>
-      {!REMINDERS_SUPPORTED ? <Note>Reminders work in the phone app. Your choices here are saved and apply on your phone.</Note> : null}
+      {!REMINDERS_SUPPORTED ? <Note>{REMINDERS_UNAVAILABLE_TEXT}</Note> : null}
       {perm === "denied" ? <Note>Notifications are blocked for ASCENT. Turn them on in your phone&apos;s Settings.</Note> : null}
 
       <Section title="Workout" sub="On training days, with what's planned" on={r.workout.on} onToggle={(on) => update("workout", { on })}>

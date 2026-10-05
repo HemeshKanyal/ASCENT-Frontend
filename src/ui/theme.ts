@@ -27,8 +27,15 @@ export const colors = {
   rotator: "#9A9A9A",
   warning: "#D4D4D4",
   success: "#FFFFFF",
-  // The only hue in the app: reserved for destructive actions and errors.
+  // Reserved for destructive actions and errors.
   danger: "#F26D6D",
+  // Anatomy only: muscles being trained. Deeper than `danger` so a lit-up
+  // muscle never reads as a delete button.
+  muscle: "#E5383B",
+  muscleSoft: "#8A2E30",
+  muscleIdle: "#3A3A3A",
+  bodySkin: "#2C2C2C",
+  bodyLine: "#0A0A0A",
 };
 
 export const gradients = {

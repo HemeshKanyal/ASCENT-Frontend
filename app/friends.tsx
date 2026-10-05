@@ -14,7 +14,7 @@ function Person({ row, children }: { row: FriendRow; children?: React.ReactNode 
         style={{ flexDirection: "row", alignItems: "center", gap: space.md, flex: 1 }}
         onPress={() => router.push({ pathname: "/user/[id]", params: { id: row.user.id, name: row.user.name } })}
       >
-        <Avatar name={row.user.name} size={36} />
+        <Avatar name={row.user.name} uri={row.user.avatarUrl} size={36} />
         <View style={{ flex: 1 }}>
           <Text style={type.strong}>{row.user.name}</Text>
           <Text style={type.small}>@{row.user.handle}</Text>

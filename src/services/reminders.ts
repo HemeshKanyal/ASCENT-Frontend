@@ -5,14 +5,28 @@
  * with fixed text (meals, water, supplements, weigh-in) repeats on its own.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import { Platform } from "react-native";
 
 import type { PlannedDay, Streaks } from "../engine";
 import { dayLabel } from "../ui/sessionMeta";
 import { WEEKDAYS, type Weekday } from "./trainingStore";
 
-export const REMINDERS_SUPPORTED = Platform.OS !== "web";
+// Expo Go on Android throws as soon as expo-notifications is imported (SDK 53+),
+// so it's loaded lazily and only where it works: iOS Expo Go and real builds.
+const ANDROID_EXPO_GO = Platform.OS === "android" && Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+export const REMINDERS_SUPPORTED = Platform.OS !== "web" && !ANDROID_EXPO_GO;
+export const REMINDERS_UNAVAILABLE_TEXT = ANDROID_EXPO_GO
+  ? "Reminders on Android need the installed ASCENT app — Expo Go for Android can't schedule them. They work in Expo Go on iPhone."
+  : "Reminders work in the phone app. Your choices here are saved and apply on your phone.";
+
+type NotificationsModule = typeof import("expo-notifications");
+let mod: NotificationsModule | null = null;
+function N(): NotificationsModule {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  mod ??= require("expo-notifications") as NotificationsModule;
+  return mod;
+}
 
 export type Reminders = {
   workout: { on: boolean; time: string };
@@ -57,23 +71,23 @@ let handlerSet = false;
 function ensureHandler() {
   if (handlerSet || !REMINDERS_SUPPORTED) return;
   handlerSet = true;
-  Notifications.setNotificationHandler({
+  N().setNotificationHandler({
     handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }),
   });
 }
 
 export async function permissionStatus(): Promise<"granted" | "denied" | "undetermined" | "unsupported"> {
   if (!REMINDERS_SUPPORTED) return "unsupported";
-  return (await Notifications.getPermissionsAsync()).status;
+  return (await N().getPermissionsAsync()).status;
 }
 
 export async function requestPermission() {
   if (!REMINDERS_SUPPORTED) return false;
   ensureHandler();
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("reminders", { name: "Reminders", importance: Notifications.AndroidImportance.DEFAULT });
+    await N().setNotificationChannelAsync("reminders", { name: "Reminders", importance: N().AndroidImportance.DEFAULT });
   }
-  const { status } = await Notifications.requestPermissionsAsync();
+  const { status } = await N().requestPermissionsAsync();
   return status === "granted";
 }
 
@@ -83,24 +97,24 @@ type Context = { weekPlan: Record<string, PlannedDay>; trainingDays: Weekday[]; 
 export async function syncReminders(ctx: Context) {
   if (!REMINDERS_SUPPORTED) return;
   ensureHandler();
-  if ((await Notifications.getPermissionsAsync()).status !== "granted") return;
+  if ((await N().getPermissionsAsync()).status !== "granted") return;
   const r = await getReminders();
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  await N().cancelAllScheduledNotificationsAsync();
   const channelId = Platform.OS === "android" ? "reminders" : undefined;
   const now = new Date();
   const jobs: Promise<string>[] = [];
   const at = (title: string, body: string, date: Date, url: string) =>
     jobs.push(
-      Notifications.scheduleNotificationAsync({
+      N().scheduleNotificationAsync({
         content: { title, body, data: { url } },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date, channelId },
+        trigger: { type: N().SchedulableTriggerInputTypes.DATE, date, channelId },
       })
     );
   const daily = (title: string, body: string, time: string, url: string) =>
     jobs.push(
-      Notifications.scheduleNotificationAsync({
+      N().scheduleNotificationAsync({
         content: { title, body, data: { url } },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, ...hm(time), channelId },
+        trigger: { type: N().SchedulableTriggerInputTypes.DAILY, ...hm(time), channelId },
       })
     );
 
@@ -146,9 +160,9 @@ export async function syncReminders(ctx: Context) {
   if (r.weighIn.on) {
     const wd = WEEKDAYS.findIndex((d) => d.id === r.weighIn.day); // 0 = Monday
     jobs.push(
-      Notifications.scheduleNotificationAsync({
+      N().scheduleNotificationAsync({
         content: { title: "Weekly weigh-in", body: "Same time, same scale, before breakfast.", data: { url: "/fuel" } },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.WEEKLY, weekday: ((wd + 1) % 7) + 1, ...hm(r.weighIn.time), channelId },
+        trigger: { type: N().SchedulableTriggerInputTypes.WEEKLY, weekday: ((wd + 1) % 7) + 1, ...hm(r.weighIn.time), channelId },
       })
     );
   }
@@ -158,7 +172,7 @@ export async function syncReminders(ctx: Context) {
 /** Open the screen a tapped reminder points to. */
 export function onReminderTap(open: (url: string) => void) {
   if (!REMINDERS_SUPPORTED) return () => {};
-  const sub = Notifications.addNotificationResponseReceivedListener((res) => {
+  const sub = N().addNotificationResponseReceivedListener((res) => {
     const url = res.notification.request.content.data?.url;
     if (typeof url === "string") open(url);
   });
@@ -168,8 +182,8 @@ export function onReminderTap(open: (url: string) => void) {
 export async function sendTestReminder() {
   if (!REMINDERS_SUPPORTED) return;
   ensureHandler();
-  await Notifications.scheduleNotificationAsync({
+  await N().scheduleNotificationAsync({
     content: { title: "Reminders are on", body: "This is what an ASCENT reminder looks like.", data: { url: "/reminders" } },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 3, channelId: Platform.OS === "android" ? "reminders" : undefined },
+    trigger: { type: N().SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 3, channelId: Platform.OS === "android" ? "reminders" : undefined },
   });
 }

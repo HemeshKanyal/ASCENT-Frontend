@@ -1,7 +1,8 @@
 /**
- * Meal estimate from a photo and/or a description, using Claude vision.
+ * Meal estimate from a photo and/or a description, using a vision model.
  * Runs on the dev/web server so the API key never ships in the app.
- * Needs ANTHROPIC_API_KEY in .env.local (see .env.example).
+ * Provider: Gemini when GEMINI_API_KEY is set (free tier), else Claude with
+ * ANTHROPIC_API_KEY (see .env.example). Both return the same MealEstimate shape.
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
@@ -36,10 +37,13 @@ const SYSTEM = `You estimate what's in a meal and how much, for a nutrition trac
 
 const MAX_BASE64 = 7_000_000; // ~5 MB image
 
+type Media = "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+type Input = { image?: string; media: Media; prompt: string };
+type Result = { ok: true; data: unknown } | { ok: false; error: string; status: number };
+
 export async function POST(request: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return Response.json({ error: "not_configured" }, { status: 503 });
-  }
+  const provider = process.env.GEMINI_API_KEY ? estimateWithGemini : process.env.ANTHROPIC_API_KEY ? estimateWithClaude : null;
+  if (!provider) return Response.json({ error: "not_configured" }, { status: 503 });
   let body: { image?: string; mediaType?: string; hint?: string };
   try {
     body = await request.json();
@@ -50,14 +54,53 @@ export async function POST(request: Request) {
   if (!image && !hint?.trim()) return Response.json({ error: "bad_request" }, { status: 400 });
   if (image && image.length > MAX_BASE64) return Response.json({ error: "too_large" }, { status: 413 });
   const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
-  const media = (allowed as readonly string[]).includes(mediaType) ? (mediaType as (typeof allowed)[number]) : "image/jpeg";
+  const media = (allowed as readonly string[]).includes(mediaType) ? (mediaType as Media) : "image/jpeg";
+  const prompt = hint?.trim() ? `The person says: "${hint.trim().slice(0, 500)}"` : "Estimate this meal.";
 
+  const result = await provider({ image, media, prompt });
+  if (!result.ok) return Response.json({ error: result.error }, { status: result.status });
+  return Response.json(result.data);
+}
+
+/** Gemini REST with a JSON schema, so no extra SDK is needed. */
+async function estimateWithGemini({ image, media, prompt }: Input): Promise<Result> {
+  const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
+  const parts: object[] = [];
+  if (image) parts.push({ inline_data: { mime_type: media, data: image } });
+  parts.push({ text: prompt });
+  let res: Response;
+  try {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY ?? "" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM }] },
+        contents: [{ role: "user", parts }],
+        generationConfig: { responseMimeType: "application/json", responseJsonSchema: z.toJSONSchema(MealEstimate) },
+      }),
+    });
+  } catch {
+    return { ok: false, error: "failed", status: 502 };
+  }
+  if (res.status === 401 || res.status === 403) return { ok: false, error: "not_configured", status: 503 };
+  if (res.status === 429) return { ok: false, error: "busy", status: 429 };
+  if (!res.ok) return { ok: false, error: "failed", status: 502 };
+  const json = await res.json();
+  const candidate = json.candidates?.[0];
+  if (json.promptFeedback?.blockReason || candidate?.finishReason === "SAFETY") return { ok: false, error: "refused", status: 422 };
+  const text = candidate?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+  try {
+    const parsed = MealEstimate.safeParse(JSON.parse(text));
+    return parsed.success ? { ok: true, data: parsed.data } : { ok: false, error: "failed", status: 502 };
+  } catch {
+    return { ok: false, error: "failed", status: 502 };
+  }
+}
+
+async function estimateWithClaude({ image, media, prompt }: Input): Promise<Result> {
   const content: Anthropic.ContentBlockParam[] = [];
   if (image) content.push({ type: "image", source: { type: "base64", media_type: media, data: image } });
-  content.push({
-    type: "text",
-    text: hint?.trim() ? `The person says: "${hint.trim().slice(0, 500)}"` : "Estimate this meal.",
-  });
+  content.push({ type: "text", text: prompt });
 
   const client = new Anthropic();
   try {
@@ -68,13 +111,12 @@ export async function POST(request: Request) {
       output_config: { effort: "medium", format: zodOutputFormat(MealEstimate) },
       messages: [{ role: "user", content }],
     });
-    if (response.stop_reason === "refusal") return Response.json({ error: "refused" }, { status: 422 });
-    if (!response.parsed_output) return Response.json({ error: "failed" }, { status: 502 });
-    return Response.json(response.parsed_output);
+    if (response.stop_reason === "refusal") return { ok: false, error: "refused", status: 422 };
+    if (!response.parsed_output) return { ok: false, error: "failed", status: 502 };
+    return { ok: true, data: response.parsed_output };
   } catch (error) {
-    if (error instanceof Anthropic.AuthenticationError) return Response.json({ error: "not_configured" }, { status: 503 });
-    if (error instanceof Anthropic.RateLimitError) return Response.json({ error: "busy" }, { status: 429 });
-    if (error instanceof Anthropic.APIError) return Response.json({ error: "failed", status: error.status }, { status: 502 });
-    return Response.json({ error: "failed" }, { status: 500 });
+    if (error instanceof Anthropic.AuthenticationError) return { ok: false, error: "not_configured", status: 503 };
+    if (error instanceof Anthropic.RateLimitError) return { ok: false, error: "busy", status: 429 };
+    return { ok: false, error: "failed", status: 502 };
   }
 }

@@ -565,3 +565,44 @@ export function achievements(
   sessions: object[],
   opts?: { trainingDays?: string[]; weeklyGoal?: number; foodDays?: string[]; earned?: Record<string, string>; now?: Date }
 ): Achievement[];
+
+// ── Anatomy ───────────────────────────────────────────────────────────────
+export interface BodyRegion {
+  muscle: string | null;
+  d: string;
+  whole: boolean;
+}
+export const MUSCLE_DETAILS: Record<string, [name: string, group: string]>;
+export const GROUP_MUSCLES: Record<string, string[]>;
+export const MUSCLE_GROUP: Record<string, string>;
+export function musclesFromGroups(primary?: string[], secondary?: string[]): { primary: string[]; secondary: string[] };
+export function exerciseMuscles(exercise: Pick<Exercise, "id" | "primary" | "secondary" | "emphasis">): { primary: string[]; secondary: string[] };
+export function muscleLabel(id: string): string;
+export const BODY_VIEWBOX: { width: number; height: number };
+export const BODY_FRONT: BodyRegion[];
+export const BODY_BACK: BodyRegion[];
+export const BODY_DETAILS: { front: string[]; back: string[] };
+export const AREA_MUSCLES: Record<string, string[]>;
+export const ACTIVITY_MUSCLES: Record<string, { primary: string[]; secondary: string[] }>;
+export function muscleHighlight(primary?: string[], secondary?: string[]): Record<string, 1 | 2>;
+
+// ── Exercise demo animation ──────────────────────────────────────────────
+/** Theme colour key, or a literal colour (body shading uses rgb()). */
+export type DemoColor = "muscle" | "muscleSoft" | "outline" | "bar" | "plate" | "plateEdge" | "propDark" | "propTop" | "propSide" | "cable" | "band" | "shadow" | (string & {});
+export type DemoShape =
+  | { kind: "line"; p1: [number, number]; p2: [number, number]; w: number; color: DemoColor; opacity?: number }
+  | { kind: "circle"; c: [number, number]; r: number; color: DemoColor; opacity?: number }
+  | { kind: "ellipse"; c: [number, number]; rx: number; ry: number; rot: number; color: DemoColor; opacity?: number }
+  | { kind: "poly"; points: [number, number][]; color: DemoColor; opacity?: number };
+export interface DemoMotion {
+  frames: object[];
+  props?: object[];
+  cam?: { az?: number; el?: number };
+  adjust?: (pose: object) => object;
+}
+export const MOTIONS: Record<string, DemoMotion>;
+export function demoFrame(motion: DemoMotion, t: number, levels: Record<string, 1 | 2>): DemoShape[];
+export function demoViewBox(motion: DemoMotion): [number, number, number, number];
+export function demoDuration(motion: DemoMotion): number;
+export function demoIdFor(exercise: Pick<Exercise, "id">): string | null;
+export function checkMotion(motion: DemoMotion, samples?: number): string[];

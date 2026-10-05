@@ -30,7 +30,7 @@ export default function GuidedScreen() {
   const [stepElapsed, setStepElapsed] = useState(0);
   const [totalElapsed, setTotalElapsed] = useState(0);
   const [finished, setFinished] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
   const last = useRef<number | null>(null);
 
   // Log form (endurance)
@@ -151,17 +151,20 @@ export default function GuidedScreen() {
       router.replace({ pathname: "/activity/[id]", params: { id: entry.id } });
       return;
     }
+    let entryId: string | null = null;
     if (isEndurance) {
-      await logEndurance(session as EnduranceSession, {
+      entryId = (
+        await logEndurance(session as EnduranceSession, {
         durationMinutes: Number(minutes) || Math.max(1, Math.round(totalElapsed / 60)),
         distanceKm: Number(distance.replace(",", ".")) || undefined,
         avgHr: Number(hr) || undefined,
-        rpe: rpe ?? undefined,
-      });
+          rpe: rpe ?? undefined,
+        })
+      ).id;
     } else if (mode === "mobility") {
-      await logFlow(session as Flow, Math.max(1, Math.round(totalElapsed / 60)));
+      entryId = (await logFlow(session as Flow, Math.max(1, Math.round(totalElapsed / 60)))).id;
     }
-    setSaved(true);
+    setSaved(entryId);
   };
 
   // ── Finished ──
@@ -175,7 +178,14 @@ export default function GuidedScreen() {
     }
     if (saved) {
       return (
-        <Screen footer={<Button title="Done" onPress={() => router.dismissTo("/")} />}>
+        <Screen
+          footer={
+            <Row>
+              <Button title="Done" variant="secondary" onPress={() => router.dismissTo("/")} style={{ flex: 1 }} />
+              <Button title="Post to friends" onPress={() => router.replace({ pathname: "/share/[id]", params: { id: saved } })} style={{ flex: 2 }} />
+            </Row>
+          }
+        >
           <Title kicker="Saved">Session logged.</Title>
           <Row gap={space.md}>
             <Stat value={`${Math.round(totalElapsed / 60)}′`} label="Time" />

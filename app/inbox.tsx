@@ -54,7 +54,7 @@ export default function InboxScreen() {
           return (
             <Pressable key={n.id} onPress={() => target && router.push(target)}>
               <Row gap={space.md} style={{ alignItems: "flex-start", paddingVertical: space.sm, opacity: n.read ? 0.7 : 1 }}>
-                <Avatar name={n.actor.name} size={36} />
+                <Avatar name={n.actor.name} uri={n.actor.avatarUrl} size={36} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={type.body}>
                     <Text style={{ color: colors.text, fontWeight: "700" }}>{n.actor.name}</Text> {VERB[n.type]}

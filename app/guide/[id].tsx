@@ -5,6 +5,7 @@ import { Text, View } from "react-native";
 import {
   ACTIVITY_BY_ID,
   ACTIVITY_CATEGORIES,
+  ACTIVITY_MUSCLES,
   AREAS,
   SESSION_TYPES,
   ageFrom,
@@ -16,7 +17,9 @@ import {
 } from "../../src/engine";
 import { engineProfile, flowConstraints, getProfile, getSessions, setGuided, type Profile } from "../../src/services/trainingStore";
 import { Button, Card, Empty, Label, Loading, Row, Screen, Title } from "../../src/ui/components";
+import { BodyMap } from "../../src/ui/BodyMap";
 import { colors, space, type } from "../../src/ui/theme";
+import { WatchButton, youtubeQuery } from "../../src/ui/youtube";
 
 const GUIDED_TYPES: Record<string, string[]> = {
   run: ["easy", "intervals", "tempo", "long"],
@@ -96,6 +99,14 @@ export default function ActivityGuide() {
       }
     >
       <Title kicker={ACTIVITY_CATEGORIES[activity.category]}>{activity.name}</Title>
+
+      {ACTIVITY_MUSCLES[activity.id] ? (
+        <Card>
+          <Label>Muscles worked</Label>
+          <BodyMap primary={ACTIVITY_MUSCLES[activity.id].primary} secondary={ACTIVITY_MUSCLES[activity.id].secondary} />
+        </Card>
+      ) : null}
+      <WatchButton id={activity.id} query={youtubeQuery("activity", activity.name, activity.id)} title="Learn it on YouTube ›" />
 
       <Section title="Tips" items={activity.tips} />
       <Section title="Technique" items={activity.technique} />

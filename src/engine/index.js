@@ -17,3 +17,5 @@ export * from "./supplements.js";
 export * from "./foodMicros.js";
 export * from "./mealParser.js";
 export * from "./streaks.js";
+export * from "./anatomy.js";
+export * from "./demo.js";

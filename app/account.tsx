@@ -4,6 +4,7 @@ import { Text } from "react-native";
 
 import { getProfile } from "../src/services/trainingStore";
 import { signIn, signUp } from "../src/services/community";
+import { syncPhotoAfterSignIn } from "../src/services/profilePhoto";
 import { Button, Chip, Label, Note, Row, Screen, Title, Wrap } from "../src/ui/components";
 import { Input } from "../src/ui/social";
 import { colors, type } from "../src/ui/theme";
@@ -25,11 +26,11 @@ export default function Account() {
     if (mode === "signup" && password.length < 8) return setError("Use at least 8 characters for your password.");
     setBusy(true);
     try {
-      if (mode === "signup") {
-        await signUp({ name: name.trim(), email: email.trim(), password, handle: handle.trim() || undefined });
-      } else {
-        await signIn({ email: email.trim(), password });
-      }
+      const me =
+        mode === "signup"
+          ? await signUp({ name: name.trim(), email: email.trim(), password, handle: handle.trim() || undefined })
+          : await signIn({ email: email.trim(), password });
+      await syncPhotoAfterSignIn(me).catch(() => {});
       // Onboarding may not be done yet on a fresh install.
       if (!(await getProfile())) router.replace("/onboarding");
       else if (router.canGoBack()) router.back();
