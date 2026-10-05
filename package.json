@@ -13,7 +13,6 @@
     "phone": "expo start --tunnel"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.131.0",
     "@expo-google-fonts/dm-serif-display": "^0.4.2",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/vector-icons": "^15.0.3",
@@ -55,8 +54,7 @@
     "react-native-svg": "15.15.4",
     "react-native-view-shot": "5.1.0",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.10.1",
-    "zod": "^4.6.5"
+    "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
     "@expo/ngrok": "^4.1.3",

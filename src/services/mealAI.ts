@@ -1,8 +1,6 @@
-/** Client for the meal-photo AI route (app/api/meal-photo+api.ts). */
-import Constants from "expo-constants";
-import { Platform } from "react-native";
-
+/** Client for the backend's meal-photo AI route (ASCENT-Backend POST /api/meal-photo). */
 import { parseMeal, type Food } from "../engine";
+import { apiUrl } from "./community";
 
 export type AIItem = {
   name: string;
@@ -18,18 +16,10 @@ export type AIItem = {
 export type AIResult = { is_food: boolean; items: AIItem[]; notes: string };
 export type AIError = "not_configured" | "offline" | "refused" | "busy" | "too_large" | "failed";
 
-/** The server that serves the app also serves the API route (dev server or tunnel). */
-function apiBase() {
-  if (Platform.OS === "web") return "";
-  const host = Constants.expoConfig?.hostUri ?? "";
-  if (!host) return "";
-  return `${host.includes("exp.direct") ? "https" : "http"}://${host}`;
-}
-
 export async function analyzeMeal(input: { image?: string; mediaType?: string; hint?: string }): Promise<{ ok: true; result: AIResult } | { ok: false; error: AIError }> {
   let res: Response;
   try {
-    res = await fetch(`${apiBase()}/api/meal-photo`, {
+    res = await fetch(`${apiUrl()}/api/meal-photo`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
@@ -44,8 +34,8 @@ export async function analyzeMeal(input: { image?: string; mediaType?: string; h
 }
 
 export const AI_ERROR_TEXT: Record<AIError, string> = {
-  not_configured: "Photo analysis isn't set up yet — it needs GEMINI_API_KEY or ANTHROPIC_API_KEY in .env.local on the server.",
-  offline: "Couldn't reach the ASCENT server. Check your connection and that the app server is running.",
+  not_configured: "Photo analysis isn't set up on the ASCENT server yet. Describe the meal instead for now.",
+  offline: "Couldn't reach the ASCENT server. Check your connection — if it's been idle, the server can take up to a minute to wake up.",
   refused: "The AI couldn't analyse this photo. Try another angle or describe the meal instead.",
   busy: "The AI is busy right now — try again in a minute.",
   too_large: "That photo is too large — try again with a smaller one.",

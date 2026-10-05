@@ -19,10 +19,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.hemeshkanyal.ascent"
+      "package": "com.hemeshkanyal.ascent",
+      "versionCode": 1
     },
     "web": {
-      "output": "server",
+      "output": "single",
       "favicon": "./assets/images/favicon.png",
       "name": "ASCENT",
       "shortName": "ASCENT",
